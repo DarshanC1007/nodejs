@@ -1,0 +1,90 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: test-env
+  labels:
+    name: test-env
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-configmap
+  namespace: test-env
+data:
+  dbName: "dbadmin"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  namespace: test-env  
+type: Opaque
+data:
+  mysql-root-username: ZGJhZG1pbg==
+  mysql-root-password: ZGJwYXNzd29yZDEx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-external-service
+  namespace: test-env
+spec:
+  type: ExternalName
+  externalName: usermgmtdb.cvlizqm1zzu9.ap-south-1.rds.amazonaws.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-deployment
+  namespace: test-env
+spec:
+  selector:
+    matchLabels:
+      app: nodejs
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nodejs
+    spec:
+      containers:
+        - name: nodejs
+          image: 042121642947.dkr.ecr.ap-south-1.amazonaws.com/aws-ecr-nodejs
+          ports:
+            - containerPort: 3000
+          env:
+            # Use secret in real usage
+            - name: DB_HOST
+              value: mysql-external-service
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-configmap
+                  key: dbName
+            - name: DB_USER
+              valueFrom: 
+                secretKeyRef:
+                  name: mysql-secret 
+                  key: mysql-root-username
+            - name: DB_PASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: mysql-secret 
+                  key: mysql-root-password
+         
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-service
+  namespace: test-env
+spec:
+  selector:
+    app: nodejs
+  type: LoadBalancer 
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+
+
