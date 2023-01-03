@@ -17,13 +17,13 @@ app.set('view engine', 'ejs');
 
 // middlewares
 app.use(morgan('dev'));
-app.use(myConnection(mysql, {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    port: 3306,
-    database: process.env.DB_NAME
-}, 'single'));
+// app.use(myConnection(mysql, {
+//     host: process.env.DB_HOST,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD,
+//     port: 3306,
+//     database: process.env.DB_NAME
+// }, 'single'));
 app.use(express.urlencoded({extended: false}));
 
 // routes
